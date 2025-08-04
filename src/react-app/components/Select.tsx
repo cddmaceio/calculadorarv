@@ -2,12 +2,23 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/react-app/lib/utils';
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
   placeholder?: string;
+  onValueChange?: (value: string) => void;
+  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, children, placeholder, ...props }, ref) => {
+  ({ className, children, placeholder, onValueChange, onChange, ...props }, ref) => {
+    const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+      if (onValueChange) {
+        onValueChange(event.target.value);
+      }
+      if (onChange) {
+        onChange(event);
+      }
+    };
+
     return (
       <div className="relative">
         <select
@@ -16,6 +27,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             className
           )}
           ref={ref}
+          onChange={handleChange}
           {...props}
         >
           {placeholder && (
