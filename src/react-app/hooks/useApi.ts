@@ -216,25 +216,25 @@ export function useCalculator() {
       // Simulate calculation with mock data
       const mockResult = {
         ...mockCalculationResult,
-        produtividade_alcancada: input.quantidade_produzida / (input.tempo_horas || 1),
+        produtividade_alcancada: input.quantidade_produzida ? input.quantidade_produzida / (input.tempo_horas || 1) : 0,
         kpis_atingidos: input.kpis_atingidos || [],
-        tarefas_validas: input.tarefas_validas || 0,
-        valor_tarefas: (input.tarefas_validas || 0) * 2, // R$ 2 por tarefa
-        atividades_detalhes: input.atividades_multiplas?.length > 0 
-          ? input.atividades_multiplas.map(atividade => ({
+        tarefas_validas: input.valid_tasks_count || 0,
+        valor_tarefas: (input.valid_tasks_count || 0) * 2, // R$ 2 por tarefa
+        atividades_detalhes: input.multiple_activities && input.multiple_activities.length > 0 
+          ? input.multiple_activities.map(atividade => ({
               nome: atividade.nome_atividade,
               produtividade: atividade.quantidade_produzida / (atividade.tempo_horas || 1),
               nivel: 'Nível 2',
               valor_total: atividade.quantidade_produzida * 1.5,
               unidade: 'unidades/h'
             }))
-          : [{
+          : [{  
               nome: input.nome_atividade || 'Atividade Padrão',
-              produtividade: input.quantidade_produzida / (input.tempo_horas || 1),
-              nivel: 'Nível 2',
-              valor_total: input.quantidade_produzida * 1.5,
+              produtividade: input.quantidade_produzida ? input.quantidade_produzida / (input.tempo_horas || 1) : 0,
+              nivel: 'Nível 1',
+              valor_total: (input.quantidade_produzida || 0) * 1.2,
               unidade: 'unidades/h'
-            }]
+            }],
       };
       setResult(mockResult);
       setError(null); // Don't show error for mock data

@@ -9,6 +9,7 @@ interface FileUploadProps {
   className?: string;
   uploadedFileName?: string;
   onRemoveFile?: () => void;
+  disabled?: boolean;
 }
 
 export function FileUpload({ 
@@ -16,7 +17,8 @@ export function FileUpload({
   accept = '.csv,.xlsx,.xls', 
   className,
   uploadedFileName,
-  onRemoveFile 
+  onRemoveFile,
+  disabled = false
 }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,7 +30,9 @@ export function FileUpload({
   };
 
   const handleClick = () => {
-    fileInputRef.current?.click();
+    if (!disabled) {
+      fileInputRef.current?.click();
+    }
   };
 
   if (uploadedFileName) {
@@ -61,16 +65,24 @@ export function FileUpload({
         onChange={handleFileChange}
         accept={accept}
         className="hidden"
+        disabled={disabled}
       />
       <div
         onClick={handleClick}
-        className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+        className={cn(
+          "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg",
+          disabled 
+            ? "border-gray-200 bg-gray-50 cursor-not-allowed" 
+            : "border-gray-300 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+        )}
       >
-        <Upload className="h-8 w-8 text-gray-400 mb-2" />
-        <p className="text-sm text-gray-600 text-center">
-          <span className="font-medium text-blue-600">Clique para fazer upload</span>
+        <Upload className={cn("h-8 w-8 mb-2", disabled ? "text-gray-300" : "text-gray-400")} />
+        <p className={cn("text-sm text-center", disabled ? "text-gray-400" : "text-gray-600")}>
+          <span className={cn("font-medium", disabled ? "text-gray-400" : "text-blue-600")}>
+            {disabled ? "Upload desativado" : "Clique para fazer upload"}
+          </span>
           <br />
-          ou arraste o arquivo aqui
+          {!disabled && "ou arraste o arquivo aqui"}
         </p>
         <p className="text-xs text-gray-500 mt-1">
           Formatos aceitos: CSV, Excel

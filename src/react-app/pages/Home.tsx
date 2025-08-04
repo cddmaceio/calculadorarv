@@ -55,8 +55,8 @@ export default function Home() {
     tempo_horas: 0,
     input_adicional: 0,
     kpis_atingidos: [],
-    tarefas_validas: 0,
-    atividades_multiplas: []
+    valid_tasks_count: 0,
+    multiple_activities: []
   });
 
   // Initialize launch date to today
@@ -144,32 +144,37 @@ export default function Home() {
     setProcessingTasks(true);
     
     try {
-      const hash = await generateFileHash(file);
+      const hash = await generateFileHash(await file.text());
       setFileHash(hash);
       
       // Check cache first
-      const cachedData = FileDataCache.get(hash);
-      if (cachedData) {
-        setValidTasksCount(cachedData.validTasksCount);
-        setValidTasksDetails(cachedData.validTasksDetails);
-        setUniqueOperators(cachedData.uniqueOperators);
+      const cachedData = FileDataCache.get(file.name);
+      if (cachedData && FileDataCache.isValid(cachedData, hash)) {
+        setValidTasksCount(0); // Será atualizado após o cálculo
+        setValidTasksDetails([]);
+        setUniqueOperators([]);
         setProcessingTasks(false);
         return;
       }
 
-      const csvData = await parseCSV(file);
-      const { validTasks, validTasksDetails, uniqueOperators } = calculateValidTasks(csvData, formData.funcao);
+      const fileContent = await file.text();
+      const csvData = parseCSV(fileContent, file.name);
       
-      setValidTasksCount(validTasks);
-      setValidTasksDetails(validTasksDetails);
-      setUniqueOperators(uniqueOperators);
-      
-      // Cache the results
-      FileDataCache.set(hash, {
-        validTasksCount: validTasks,
-        validTasksDetails,
-        uniqueOperators
+      // Salvar os dados do arquivo no cache
+      FileDataCache.save({
+        fileName: file.name,
+        fileSize: csvData.length,
+        fileHash: hash,
+        parsedAt: Date.now(),
+        parsedTasks: csvData
       });
+      
+      // Calcular tarefas válidas (será feito quando o usuário selecionar a função)
+      if (formData.funcao) {
+        const { total, detalhes } = calculateValidTasks(csvData, formData.funcao, file.name, hash);
+        setValidTasksCount(total);
+        setValidTasksDetails(detalhes);
+      }
       
     } catch (error) {
       console.error('Error processing file:', error);
@@ -192,7 +197,7 @@ export default function Home() {
       import('@/react-app/utils/mockApi').then(({ mockKPIs }) => {
         // Filter KPIs based on function and shift
         const filteredKPIs = mockKPIs.filter(kpi => 
-          kpi.funcao === funcao && kpi.turno === turno
+          kpi.funcao_kpi === funcao && kpi.turno_kpi === turno
         );
         setAvailableKPIs(filteredKPIs);
       });
@@ -249,8 +254,8 @@ export default function Home() {
     const calculationData = {
       ...formData,
       kpis_atingidos: selectedKPIs,
-      tarefas_validas: validTasksCount,
-      atividades_multiplas: formData.funcao === 'Ajudante de Armazém' ? multipleActivities : []
+      valid_tasks_count: validTasksCount,
+      multiple_activities: formData.funcao === 'Ajudante de Armazém' ? multipleActivities : []
     };
     
     await calculate(calculationData);
@@ -503,7 +508,7 @@ export default function Home() {
                           Upload do Arquivo de Tarefas (CSV)
                         </label>
                         <FileUpload
-                          onFileSelect={handleFileUpload}
+                        onFileUpload={handleFileUpload}
                           accept=".csv"
                           disabled={processingTasks}
                         />
@@ -549,15 +554,13 @@ export default function Home() {
                           <label key={kpi.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={selectedKPIs.includes(kpi.nome)}
-                              onChange={(e) => handleKPIChange(kpi.nome, e.target.checked)}
+                              checked={selectedKPIs.includes(kpi.nome_kpi)}
+                              onChange={(e) => handleKPIChange(kpi.nome_kpi, e.target.checked)}
                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
                             <div className="flex-1">
-                              <div className="text-sm font-medium text-gray-900">{kpi.nome}</div>
-                              {kpi.descricao && (
-                                <div className="text-xs text-gray-500">{kpi.descricao}</div>
-                              )}
+                              <div className="text-sm font-medium text-gray-900">{kpi.nome_kpi}</div>
+                              <div className="text-xs text-gray-500">Meta: {kpi.valor_meta_kpi} | Peso: {kpi.peso_kpi}</div>
                             </div>
                           </label>
                         ))}

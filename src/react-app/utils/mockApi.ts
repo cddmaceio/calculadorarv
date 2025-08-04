@@ -21,30 +21,43 @@ export const mockActivityNames = [
 export const mockKPIs = [
   {
     id: 1,
-    nome: 'Produtividade Diária',
-    descricao: 'Meta de produtividade por dia',
-    valor_meta: 100,
-    peso: 0.3,
-    turno: 'Geral',
-    funcao: 'Operador de Empilhadeira'
+    nome_kpi: 'Pontualidade',
+    valor_meta_kpi: 95,
+    peso_kpi: 1,
+    turno_kpi: 'Manhã' as const,
+    funcao_kpi: 'Operador de Empilhadeira'
   },
   {
     id: 2,
-    nome: 'Qualidade',
-    descricao: 'Índice de qualidade nas operações',
-    valor_meta: 95,
-    peso: 0.4,
-    turno: 'Geral',
-    funcao: 'Conferente'
+    nome_kpi: 'Qualidade',
+    valor_meta_kpi: 98,
+    peso_kpi: 2,
+    turno_kpi: 'Manhã' as const,
+    funcao_kpi: 'Operador de Empilhadeira'
   },
   {
     id: 3,
-    nome: 'Pontualidade',
-    descricao: 'Cumprimento de horários',
-    valor_meta: 100,
-    peso: 0.3,
-    turno: 'Geral',
-    funcao: 'Geral'
+    nome_kpi: 'Segurança',
+    valor_meta_kpi: 100,
+    peso_kpi: 3,
+    turno_kpi: 'Geral' as const,
+    funcao_kpi: 'Ajudante de Armazém'
+  },
+  {
+    id: 4,
+    nome_kpi: 'Produtividade',
+    valor_meta_kpi: 90,
+    peso_kpi: 2,
+    turno_kpi: 'Tarde' as const,
+    funcao_kpi: 'Operador de Empilhadeira'
+  },
+  {
+    id: 5,
+    nome_kpi: 'Organização',
+    valor_meta_kpi: 85,
+    peso_kpi: 1,
+    turno_kpi: 'Noite' as const,
+    funcao_kpi: 'Ajudante de Armazém'
   }
 ];
 

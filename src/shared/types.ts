@@ -104,6 +104,7 @@ export const UserSchema = z.object({
   turno: z.enum(["Manhã", "Tarde", "Noite"]),
   perfil: z.enum(["Operador", "Supervisor"]).default("Operador"),
   ativo: z.boolean().default(true),
+  is_admin: z.boolean().optional().default(false),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 });
