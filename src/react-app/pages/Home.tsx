@@ -36,6 +36,9 @@ export default function Home() {
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'calculator' | 'history'>('calculator');
   const [userHistory, setUserHistory] = useState<any[]>([]);
+  const [historyMonthFilter, setHistoryMonthFilter] = useState('');
+  const [filteredHistory, setFilteredHistory] = useState<any[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
 
   // Multiple activities for Ajudantes de Armazém
   const [multipleActivities, setMultipleActivities] = useState<MultipleActivityType[]>([
@@ -397,6 +400,32 @@ export default function Home() {
       fetchUserHistory();
     }
   }, [user]);
+
+  // Filter history by month and calculate total
+  useEffect(() => {
+    if (!userHistory.length) {
+      setFilteredHistory([]);
+      setHistoryTotal(0);
+      return;
+    }
+
+    let filtered = userHistory;
+    
+    if (historyMonthFilter) {
+      filtered = userHistory.filter(item => {
+        const itemDate = new Date(item.data_lancamento);
+        const filterDate = new Date(historyMonthFilter + '-01');
+        return itemDate.getFullYear() === filterDate.getFullYear() && 
+               itemDate.getMonth() === filterDate.getMonth();
+      });
+    }
+
+    setFilteredHistory(filtered);
+    
+    // Calculate total
+    const total = filtered.reduce((sum, item) => sum + (item.remuneracao_total || 0), 0);
+    setHistoryTotal(total);
+  }, [userHistory, historyMonthFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -1081,15 +1110,51 @@ export default function Home() {
                     </Button>
                   </div>
                   
-                  {userHistory.length === 0 ? (
+                  {/* Month Filter and Total */}
+                  <div className="bg-gray-50 p-4 rounded-lg border">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <label htmlFor="month-filter" className="text-sm font-medium text-gray-700">
+                          Filtrar por mês:
+                        </label>
+                        <input
+                          type="month"
+                          id="month-filter"
+                          value={historyMonthFilter}
+                          onChange={(e) => setHistoryMonthFilter(e.target.value)}
+                          className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {historyMonthFilter && (
+                          <Button
+                            onClick={() => setHistoryMonthFilter('')}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          >
+                            Limpar
+                          </Button>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Total de entradas: {filteredHistory.length}</p>
+                        <p className="text-lg font-bold text-green-600">
+                          Total: R$ {historyTotal.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {filteredHistory.length === 0 ? (
                     <div className="text-center py-8">
                       <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">Nenhum lançamento encontrado</p>
+                      <p className="text-gray-500">
+                        {historyMonthFilter ? 'Nenhum lançamento encontrado para o mês selecionado' : 'Nenhum lançamento encontrado'}
+                      </p>
                       <p className="text-sm text-gray-400">Seus lançamentos de RV aparecerão aqui</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {userHistory.map((item, index) => {
+                      {filteredHistory.map((item, index) => {
                         let detalhes;
                         try {
                           detalhes = typeof item.detalhes_calculo === 'string' 
@@ -1145,6 +1210,26 @@ export default function Home() {
                                     <span key={kpiIndex} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                                       {kpi}
                                     </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Atividades Lançadas */}
+                            {detalhes.atividades && detalhes.atividades.length > 0 && (
+                              <div className="mt-3">
+                                <p className="text-xs text-gray-600 mb-2">Atividades Lançadas:</p>
+                                <div className="space-y-1">
+                                  {detalhes.atividades.map((atividade: any, atividadeIndex: number) => (
+                                    <div key={atividadeIndex} className="flex justify-between items-center text-xs bg-purple-50 px-2 py-1 rounded">
+                                      <span className="text-purple-800 font-medium">{atividade.nome}</span>
+                                      <div className="flex items-center space-x-2">
+                                        <span className="text-purple-600">Qtd: {atividade.quantidade}</span>
+                                        <span className="text-purple-800 font-semibold">
+                                          R$ {(atividade.quantidade * atividade.valor_unitario).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </div>
                                   ))}
                                 </div>
                               </div>
