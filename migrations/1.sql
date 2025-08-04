@@ -1,0 +1,20 @@
+
+CREATE TABLE activities (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome_atividade TEXT NOT NULL,
+  nivel_atividade TEXT NOT NULL,  
+  valor_atividade REAL NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE kpis (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome_kpi TEXT NOT NULL,
+  valor_meta_kpi REAL NOT NULL,
+  peso_kpi REAL NOT NULL,
+  turno_kpi TEXT NOT NULL,
+  funcao_kpi TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
