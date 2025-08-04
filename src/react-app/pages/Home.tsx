@@ -413,10 +413,26 @@ export default function Home() {
     
     if (historyMonthFilter) {
       filtered = userHistory.filter(item => {
-        const itemDate = new Date(item.data_lancamento);
-        const filterDate = new Date(historyMonthFilter + '-01');
-        return itemDate.getFullYear() === filterDate.getFullYear() && 
-               itemDate.getMonth() === filterDate.getMonth();
+        // Use data_lancamento (launch date) instead of created_at for filtering
+        if (!item.data_lancamento) {
+          return false;
+        }
+        
+        // Parse the date from the database (format: YYYY-MM-DD)
+        const itemDate = new Date(item.data_lancamento + 'T00:00:00.000Z'); // Force UTC to avoid timezone issues
+        
+        // Parse the filter date (format: YYYY-MM)
+        const [filterYear, filterMonth] = historyMonthFilter.split('-');
+        const filterDate = new Date(parseInt(filterYear), parseInt(filterMonth) - 1, 1); // Month is 0-indexed
+        
+        // Check for invalid dates
+        if (isNaN(itemDate.getTime()) || isNaN(filterDate.getTime())) {
+          return false;
+        }
+        
+        // Compare year and month (using UTC for item date to avoid timezone issues)
+        return itemDate.getUTCFullYear() === filterDate.getFullYear() && 
+               itemDate.getUTCMonth() === filterDate.getMonth();
       });
     }
 
@@ -997,7 +1013,7 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700">KPIs Atingidos:</span>
                       <span className="font-semibold text-blue-600">
-                        R$ {result.bonus_kpis.toFixed(2)}
+                        R$ {(result.bonus_kpis || 0).toFixed(2)}
                       </span>
                     </div>
                     
@@ -1083,8 +1099,6 @@ export default function Home() {
                       </Button>
                     </div>
                   </div>
-                  </div>
-                  )}
 
                   {error && (
                    <Alert variant="destructive" className="mt-6">
@@ -1094,6 +1108,8 @@ export default function Home() {
                    )}
                 </div>
               )}
+            </div>
+          )}
 
             {/* History Tab */}
               {activeTab === 'history' && (
@@ -1177,7 +1193,7 @@ export default function Home() {
                                 </span>
                               </div>
                               <span className="text-lg font-bold text-green-600">
-                                R$ {item.remuneracao_total.toFixed(2)}
+                                R$ {(item.remuneracao_total || 0).toFixed(2)}
                               </span>
                             </div>
                             
@@ -1185,13 +1201,13 @@ export default function Home() {
                               <div>
                                 <p className="text-gray-600">Atividades</p>
                                 <p className="font-medium text-purple-600">
-                                  R$ {item.subtotal_atividades.toFixed(2)}
+                                  R$ {(item.subtotal_atividades || 0).toFixed(2)}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-gray-600">Bônus KPIs</p>
                                 <p className="font-medium text-blue-600">
-                                  R$ {item.bonus_kpis.toFixed(2)}
+                                  R$ {(item.bonus_kpis || 0).toFixed(2)}
                                 </p>
                               </div>
                               <div>
@@ -1224,9 +1240,9 @@ export default function Home() {
                                     <div key={atividadeIndex} className="flex justify-between items-center text-xs bg-purple-50 px-2 py-1 rounded">
                                       <span className="text-purple-800 font-medium">{atividade.nome}</span>
                                       <div className="flex items-center space-x-2">
-                                        <span className="text-purple-600">Qtd: {atividade.quantidade}</span>
+                                        <span className="text-purple-600">Qtd: {atividade.quantidade || 0}</span>
                                         <span className="text-purple-800 font-semibold">
-                                          R$ {(atividade.quantidade * atividade.valor_unitario).toFixed(2)}
+                                          R$ {((atividade.quantidade || 0) * (atividade.valor_unitario || 0)).toFixed(2)}
                                         </span>
                                       </div>
                                     </div>
